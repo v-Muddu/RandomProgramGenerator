@@ -25,7 +25,7 @@
 <field modifiers> ::= <field modifier>
 <field modifier> ::= public | protected | private | static
 <type> ::= <primitive type>
-<primitive type> ::= <numeric type> | boolean
+<primitive type> ::= <numeric type>
 <numeric type> ::= <integral type> | <floating-point type>
 <integral type> ::= byte | short | int | long | char
 <floating-point type> ::= float | double
@@ -38,17 +38,17 @@
 <method declaration> ::= <method header> <method body>
 <method header> ::= <method modifiers> <result type> <method declarator>
 <method modifiers> ::= <method modifier>
-<method modifier> ::= public | protected | private | static | final
+<method modifier> ::= public | protected | private | final
 <result type> ::= <type> | void
 <method declarator> ::= <methodIdentifier> ( <formal parameter list> )
-<formal parameter list> ::= <formal parameter> | <formal parameter list> , <formal parameter>
+<formal parameter list> ::= <formal parameter list> , <formal parameter> | <formal parameter>
 <formal parameter> ::= <type> <variable declarator id>
 <method body> ::= <block> ;
 <static initializer> ::= static <block>
 <constructor declaration> ::= <constructor modifiers>? <constructor declarator> <constructor body>
 <constructor modifiers> ::= <constructor modifier>
 <constructor modifier> ::= public | protected | private
-<constructor declarator> ::= <simple type name> ( <formal parameter list> )
+<constructor declarator> ::= <simple type name> ( <formal parameter list>,<formal parameter list>? )
 <constructor body> ::= { <block statements>? }
 <interface declaration> ::= <interface modifiers>? interface <interfaceIdentifier>  <interface body>
 <interface modifiers> ::= <interface modifier>
@@ -75,15 +75,15 @@
 
 <statement> ::= <statement without trailing substatement>  | <if then statement> | <if then else statement> | <while statement>
 
-<statement without trailing substatement> ::= <block> | <empty statement> | <expression statement> | <switch statement> | <do statement> | <return statement>  | <try statement>
+<statement without trailing substatement> ::= <block> | <empty statement> | <expression statement> | <switch statement> | <do statement> | <try statement>
 <empty statement> ::= ;
 <expression statement> ::= <statement expression> ;
-<statement expression> ::= <assignment> | <preincrement expression> | <postincrement expression> | <predecrement expression> | <postdecrement expression>
+<statement expression> ::= <assignment>
 <assignment> ::= <left hand side> <assignment operator> <assignment expression>
 <left hand side> ::= <expression name>
 <expression name> ::= <intIdentifier>
 <assignment operator> ::= = | *= | /= | %= | += | -= | <<= | >>= | >>>= | &= | ^=
-<assignment expression> ::= <conditional expression> | <assignment> | <math expression>
+<assignment expression> ::=  <assignment> | <math expression>
 <math expression> ::= <additive or sub expression> | <multiplicative or div expression>
 <additive or sub expression> ::= <math or identifier> + <math or identifier> | <math or identifier> - <math or identifier>
 <multiplicative or div expression> ::= <math or identifier> * <math or identifier> | <math or identifier> / <math or identifier> | <math or identifier> % <math or identifier>
@@ -105,7 +105,7 @@
 <switch block statement groups> ::= <switch block statement group> | <switch block statement groups> <switch block statement group>
 <switch block statement group> ::= <switch labels>
 <switch labels> ::= <switch label> | <switch labels> <switch label>
-<switch label> ::= case <digit> : <block>
+<switch label> ::= case <digits> : <block>
 <constant expression> ::= <expression>
 <do statement> ::= do {<statement>} while ( <conditional expression> ) ;
 <break statement> ::= break ;
