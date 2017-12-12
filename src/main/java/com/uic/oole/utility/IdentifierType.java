@@ -29,7 +29,7 @@ public enum IdentifierType {
 
     public enum Type {
 
-        voidType("void",""), intType("int","0"), floatType("float","0.0f"), charType("char","a"), shortType("short","0"), doubleType("double","0.0d") ,byteType("byte","0"), booleanType("boolean","true"), longType("long","0L");
+        voidType("void",""), intType("int","0"), floatType("float","0.0f"), charType("char","'a'"), shortType("short","0"), doubleType("double","0.0d") ,byteType("byte","0"), booleanType("boolean","true"), longType("long","0L");
 
         private String returnType;
 
