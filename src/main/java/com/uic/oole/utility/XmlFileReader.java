@@ -15,7 +15,7 @@ import java.io.IOException;
  * Xml File Reader Class
  */
 public class XmlFileReader {
-    private ApplicationConstraints ac;
+    public static ApplicationConstraints ac;
 
     public XmlFileReader(ApplicationConstraints _applicationConstraints){
         this.ac = _applicationConstraints;
@@ -66,6 +66,8 @@ public class XmlFileReader {
     public ApplicationConstraints getConstraints(Node node){
         if(node.getNodeType() == Node.ELEMENT_NODE){
             Element element = (Element) node;
+            ac.setNoOfInterfaces(Integer.parseInt(getTagValue("noOfInterfaces",element)));
+            ac.setMinInheritanceDepth(Integer.parseInt(getTagValue("minInheritanceDepth",element)));
             ac.setNoOfClasses(Integer.parseInt(getTagValue("noOfClasses", element)));
             ac.setAllowArray(getTagValue("allowArray", element));
             ac.setAllowIndirectRecursion(getTagValue("allowIndirectRecursion", element));

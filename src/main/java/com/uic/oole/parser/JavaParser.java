@@ -2,6 +2,7 @@ package com.uic.oole.parser;
 
 import com.github.javaparser.ast.*;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.TypeDeclaration;
 import com.github.javaparser.ast.expr.Name;
@@ -37,7 +38,6 @@ public class JavaParser implements IParser {
     @Override
     public Pair<String,String> parse(String classString) {
 
-        System.out.println("Generated class: \n " + classString);
         CompilationUnit cu = com.github.javaparser.JavaParser.parse(classString);
 
         NodeList<TypeDeclaration<?>> types = cu.getTypes();
@@ -66,12 +66,12 @@ public class JavaParser implements IParser {
 
                 }
                 else {
-                    System.out.println("Removing public modifier for class " + type.getName());
                     modifiers.remove(Modifier.PUBLIC);
                     type.setModifiers(modifiers);
                 }
             }
             type.accept(classNameVisitor, newClass);
+
 
             ClassOrInterfaceDeclaration classOrInterfaceDeclaration = (ClassOrInterfaceDeclaration) type;
             NodeList<ClassOrInterfaceType> nodeList = new NodeList<>();
@@ -97,13 +97,11 @@ public class JavaParser implements IParser {
                         }
                     }
                 }
-                System.out.println("Supertype : " + superClassName);
             }
 
             java.lang.String fullyQualifiedClassName = newClass.getName();
             if(!packageName.toString().equals(""))
                 fullyQualifiedClassName = packageName + "." + newClass.getName();
-            System.out.println("Class name: " + fullyQualifiedClassName);
 
             newClass.setName(fullyQualifiedClassName);
             classMap.put(fullyQualifiedClassName, newClass);
@@ -117,11 +115,12 @@ public class JavaParser implements IParser {
         }
         JavaCodeGenerateServiceImpl.integerlist.clear();
         JavaCodeGenerateServiceImpl.variablelist.clear();
-        System.out.println(cu);
 
         for(String importName : imports) {
             cu.getImports().add(new ImportDeclaration(new Name(importName), false, false));
         }
+
+        ErrorInformation.deleteErrorNodes();
         final String fileCode = cu.toString();
         if(fileName.equals(""))
             fileName = cu.getPackageDeclaration().get().getName().toString() + "." + types.get(0).getNameAsString();
@@ -135,6 +134,10 @@ public class JavaParser implements IParser {
      * @param cClass
      */
     static void processNode(TypeDeclaration node, CClass cClass) {
+
+        ConstructorDeclarationVisitor constructorDeclarationVisitor = new ConstructorDeclarationVisitor();
+        node.accept(constructorDeclarationVisitor,cClass);
+
         if(node.getModifiers().contains(Modifier.ABSTRACT)){
             cClass.setClassType(ClassType.abstractType);
         } else {
@@ -159,23 +162,4 @@ public class JavaParser implements IParser {
 
     }
 
-    public static void main(String[] args){
-        GrammarMapGenerator.buildGrammarMap();
-        IParser iParser = new JavaParser();
-        //iParser.parse("package a.b.c; import java.lang.ABC; public class A { public int i = 10; int m1(){int k; int j; int m=k +j; int n; if(i > k) {System.out.print(i); return i;} return 0; }}");
-        //iParser.parse("package a.b.c; import java.lang.ABC; public class A { int m1(){ if(i > k) { System.out.print(i); return i;} return 0; }}");
-        //iParser.parse("public class A {} public class B { int m1(){}} public interface C {int m2();} public abstract class D {abstract int m3();}");
-        iParser.parse("package a.b.c; public abstract class A { double m1(){ int a = 10;} float m2(float b){ }}");
-        /*Statement ifStmt = com.github.javaparser.JavaParser.parseStatement("if(a > b){ int i = a;}");
-        System.out.println(ifStmt);
-
-        VoidVisitorAdapter<Void> visitor = new VoidVisitorAdapter<Void>(){
-            @Override
-            public void visit(BinaryExpr n, Void arg) {
-                System.out.println(n.toString());
-                super.visit(n, arg);
-            }
-        };
-        ifStmt.accept(visitor,null);*/
-    }
 }

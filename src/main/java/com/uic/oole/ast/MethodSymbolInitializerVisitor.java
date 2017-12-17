@@ -52,9 +52,8 @@ public class MethodSymbolInitializerVisitor extends VoidVisitorAdapter<CClass> {
          * Later, this value is checked against the method body to see whether
          * there was any implementation or not
          */
-        if((!method.getAbstractMethod() && n.getBody() == null) || (method.getAbstractMethod() && n.getBody() != null)){
-            ErrorInformation.addNode(n);
-            System.out.println("Error in Abstract Method");
+        if((!method.getAbstractMethod() && n.getBody() == null) || (method.getAbstractMethod() && n.getBody().isPresent())){
+            ErrorInformation.removeNode(n, "Abstract method cannot have empty body, and empty method body can only be a part of abstract method");
         }
         /**
          * Field Declaration::
@@ -64,8 +63,7 @@ public class MethodSymbolInitializerVisitor extends VoidVisitorAdapter<CClass> {
         if((n.getModifiers().contains(Modifier.PRIVATE) && n.getModifiers().contains(Modifier.PUBLIC) ||
                 (n.getModifiers().contains(Modifier.PUBLIC) && n.getModifiers().contains(Modifier.PROTECTED)) ||
                 (n.getModifiers().contains(Modifier.PROTECTED) && n.getModifiers().contains(Modifier.PRIVATE)))){
-            ErrorInformation.addNode(n);
-            System.out.println("Shouldn't contain multiple access modifiers");
+            ErrorInformation.removeNode(n, "Shouldn't contain multiple access modifiers");
         }
 
 
@@ -78,9 +76,7 @@ public class MethodSymbolInitializerVisitor extends VoidVisitorAdapter<CClass> {
          */
 
         if(n.isAbstract() && (n.isNative() || n.isSynchronized() || n.getModifiers().contains(Modifier.FINAL) || n.getModifiers().contains(Modifier.PRIVATE) || n.getModifiers().contains(Modifier.STRICTFP) || n.getModifiers().contains(Modifier.STATIC))){
-            ErrorInformation.addNode(n);
-            System.out.println("Method Declaration as an abstract method can't have another of the keys words like" +
-                    "Native, Sync, Final, Private");
+            ErrorInformation.removeNode(n, "Method Declaration as an abstract method can't have another of the keys words like Native, Sync, Final, Private");
         }
 
         /**
@@ -89,15 +85,12 @@ public class MethodSymbolInitializerVisitor extends VoidVisitorAdapter<CClass> {
          * be a compile time error
          */
 
-        if((!n.isAbstract() && cClass.getAbstractClass() || (n.isAbstract() && !cClass.getAbstractClass()))){
-            ErrorInformation.addNode(n);
-            System.out.println("Compile time error in method declaration as abstract method cannot have an concrete class" +
-                    "and vice versa");
+        if((!n.isAbstract() && cClass.getAbstractClass())){
+            ErrorInformation.removeNode(n, "Compile time error in method declaration as abstract method cannot have an concrete class and vice versa");
         }
 
         String returnType = n.getType().toString();
         if(returnType != null && returnType != "" && returnType != "void"){
-            System.out.println("Has return type");
             ReturnTypeVisitor returnTypeVisitor = new ReturnTypeVisitor();
             n.accept(returnTypeVisitor, new Pair<>(cClass, method));
             if(!method.getHasReturnStatement() && !method.getAbstractMethod()){

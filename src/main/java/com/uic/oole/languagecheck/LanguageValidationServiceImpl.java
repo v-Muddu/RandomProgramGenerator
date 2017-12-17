@@ -116,7 +116,6 @@ public class LanguageValidationServiceImpl implements LanguageValidationService 
                     identifierType.getTypeByValue(superClassMethod.getType());
                     CodeGenerateService codeGenerateService = new JavaCodeGenerateServiceImpl(superClass,superClassMethod, identifierType);
                     String methodBlockCode = codeGenerateService.generateCodeForNonTerminal("<block>", GrammarMapGenerator.grammarMap);
-                    System.out.println(methodBlockCode);
 
                     TypeDeclaration type = (TypeDeclaration) classNodesMap.get(className);
                     MethodDeclaration methodDeclare = type.addMethod(superClassMethod.getName(), Modifier.PUBLIC);
@@ -126,7 +125,6 @@ public class LanguageValidationServiceImpl implements LanguageValidationService 
                     methodDeclare.setType(superClassMethod.getType());
                     BlockStmt blockStmt = com.github.javaparser.JavaParser.parseBlock(methodBlockCode);
                     methodDeclare.setBody(blockStmt);
-                    System.out.println(type);
                     //methodNode.setParentNode(classOrInterfaceType);
                 }
             }

@@ -84,7 +84,6 @@ public class JavaCodeGenerateServiceImpl implements CodeGenerateService {
     @Override
     public String generateCodeForNonTerminal(String key, Map<String, List<String>> grammarMap) {
 
-        System.out.println(key);
         if ((key.equals ("<identifier>")) || (key.equals ("<input character>" ))) {
             if(identifierType == IdentifierType.variableIdentifier)
                 return ProgramGeneratorUtils.generateIdentifierForVariables(this);

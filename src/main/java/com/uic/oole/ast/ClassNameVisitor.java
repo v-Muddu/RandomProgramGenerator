@@ -21,7 +21,6 @@ public class ClassNameVisitor extends VoidVisitorAdapter<CClass> {
 
     @Override
     public void visit(SimpleName n, CClass arg) {
-        //System.out.println("Class name: " + n.asString());
         arg.setName(n.asString());
         super.visit(n, arg);
     }
@@ -39,12 +38,12 @@ public class ClassNameVisitor extends VoidVisitorAdapter<CClass> {
          * Determines the type of the class whether it's an abstract class, an interface or a class
          */
         if(!n.isInterface() && !n.isAbstract()) {
+
             n.addConstructor(Modifier.PUBLIC);
             List<String> variableList = new ArrayList<>();
             variableList.addAll(JavaCodeGenerateServiceImpl.integerlist);
             variableList.addAll(JavaCodeGenerateServiceImpl.variablelist);
             for (String var : variableList) {
-                System.out.println("Adding field: " + var);
                 n.addField("int", var, Modifier.PUBLIC);
             }
         }
@@ -52,7 +51,7 @@ public class ClassNameVisitor extends VoidVisitorAdapter<CClass> {
         if(n.isInterface()){
             cClass.setClassType(ClassType.interfaceType);
         }else if(n.isAbstract()){
-            cClass.setAbstractClass(n.isAbstract());
+            cClass.setAbstractClass(true);
         }else {
             cClass.setClassType(ClassType.classType);
         }
@@ -63,8 +62,7 @@ public class ClassNameVisitor extends VoidVisitorAdapter<CClass> {
          */
         if(n.isInterface() && classOrInterfaceType.contains(Modifier.FINAL) && classOrInterfaceType.contains(Modifier.ABSTRACT)){
 
-            ErrorInformation.addNode(n);
-            System.out.println("Interface definition cannot contain both final and abstract");
+            ErrorInformation.removeNode(n,"Interface definition cannot contain both final and abstract");
         }
 
         /**
@@ -74,16 +72,14 @@ public class ClassNameVisitor extends VoidVisitorAdapter<CClass> {
          *
          */
         if(n.isClassOrInterfaceDeclaration() && classOrInterfaceType.contains(Modifier.ABSTRACT) && classOrInterfaceType.contains(Modifier.FINAL)){
-            ErrorInformation.addNode(n);
-            System.out.println("Class definition cannot cannot contain both final and abstract");
+            ErrorInformation.removeNode(n,"Class definition cannot cannot contain both final and abstract");
         }
         /**
          * Final Class:: JLS
          * Scans for final class type and checks whether its being extended from
          */
-        if(n.isClassOrInterfaceDeclaration() && classOrInterfaceType.contains(Modifier.FINAL) && n.getExtendedTypes().contains(Modifier.FINAL)){
-            ErrorInformation.addNode(n);
-            System.out.println("A final class cannot be extended from");
+        if(n.isClassOrInterfaceDeclaration() && n.getExtendedTypes().contains(Modifier.FINAL)){
+            ErrorInformation.removeNode(n,"A final class cannot be extended from");
         }
 
         /**
@@ -92,10 +88,8 @@ public class ClassNameVisitor extends VoidVisitorAdapter<CClass> {
          */
         List<ConstructorDeclaration> constructors = n.getConstructors();
         for(ConstructorDeclaration constructor : constructors){
-            if(n.getName() != constructor.getName()){
-                ErrorInformation.addNode(n);
-                System.out.println("Compile time error for constructor name, the constructor name should" +
-                        "match with the class name");
+            if(!n.getName().toString().equals(constructor.getName().toString())){
+                ErrorInformation.removeNode(n,"Compile time error for constructor name, the constructor name should match with the class name");
             }
         }
         super.visit(n, cClass);

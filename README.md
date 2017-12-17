@@ -1,3 +1,5 @@
+### Random Program Generator
+
 ## _Objective_
 To develop a randomly generated program that adheres to the Java Language Specification and Java grammar rules. The randomly generated code can be compiled, however the generate code is a meaning less program that has no logic to itself. The Application was built using the Java programming language that supports Java 1.8 JDK. IntelliJ has been promising over the years with cool features that improves dev time, so IntelliJ was the ideal IDE for us to start working on the project. 
 
@@ -5,171 +7,19 @@ The three main functions of the application are the following:
 
 •	Implementing the production rules (Java Grammar) and generate code.
 
-•	Parse the generated code, and later traverse the parse tree and implement JLS rules.
+•	Parse the generated code, and later traverse the parse tree and match against JLS rules.
 
 •	The semantically correct code is then stored as a .java file.
 
 ![alt text](images/flowChart.png)
 
+The above flowchart gives a high-level view of the implementation. The program starts by reading the production rules from the grammar file given to it as the input, it generates a code randomly based on the given grammar while making sure the generated code adhere to the constrains provided. The Generated code is then passed to Parser where a parse tree is created for the generated grammar.The idea here is to verify the JSL rules by traversing the parse tree. Multiple checks and balance measures are taken here to make sure the generated code is compilable. Once it is done the code is then saved to the file system as a .java file.
+
 ## _Implementing production rules (java grammar) and generate code_
 The grammar is read from java_grammar.txt file and subsequent maps are created for the terminal and non-terminal nodes. The program recurses through the grammar map by growing the non-terminal nodes, and terminates until a terminal node is reached for each of the recursion. The generated code is appended in a string form. 
 
-**GrammarMapGenerator.java** class builds the grammar maps from the java_grammar.txt
-
-This is the code snippet of the Grammar generator, all the production rules from the text file are read using stream reader and then all the nodes which are the terminals and non terminals are recursively called until an expression is assigned with a literal.
-Likewise, this pattern continues till all the expressions are assigned with a literal which would yield to a randomly generated program that is syntactically correct but semantically meaning less.
-````
-public class GrammarMapGenerator {
-
-    public static Map<String,List<String>> grammarMap = new HashMap<>();
-
-    public static void buildGrammarMap(){
-
-        BufferedReader reader = null;
-        try {
-            reader = new BufferedReader(new FileReader(("java_grammar.txt")));
-            String s = null;
-            Set<String> optionalConstructs = new HashSet<>();
-            /**
-             * maintain a set of optional constructs in the grammar. Eg <expression>?
-             */
-
-            while((s = reader.readLine()) != null){
-                if(s == "" || s == null || s.length() == 0)
-                    continue;
-                String[] statement = s.split("::=");
-                List<String> rhs = new ArrayList<>();
-                String rhsExpression = statement[1].trim();
-
-                if(rhsExpression.contains("|")) {
-                    String[] pipeSeparatedArray = rhsExpression.split("\\|");
-                    for(String exp : pipeSeparatedArray){
-                        rhs.add(exp.trim());
-                    }
-                } else {
-                    rhs.add(rhsExpression.trim());
-                }
-
-                for (String exp : rhs){
-                    checkOptionalConstructs(exp,optionalConstructs);
-                }
-                if(optionalConstructs.contains(statement[0].trim())){
-                    rhs.add(" ");
-                }
-                //System.out.println(statement[0].trim() + "==" + rhs);
-                grammarMap.put(statement[0].trim(), rhs);
-            }
-            //.out.println(grammarMap);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static void checkOptionalConstructs(String exp, Set<String> optionalConstructs) {
-
-        String patternString = "(<.*?>)(\\?)";
-
-        Pattern pattern = Pattern.compile(patternString);
-        Matcher matcher = pattern.matcher(exp);
-
-        while(matcher.find()) {
-            StringBuilder str = new StringBuilder("");
-            for(int i = matcher.start(); i <= matcher.end()-2; i++){
-                str.append(exp.charAt(i));
-            }
-            optionalConstructs.add(str.toString());
-        }
-    }
-}
-````
-
-**JavaCodeGenerateServiceImpl.java** class creates random code by recursing through grammar maps.
-
-````
-@Override
-    public String generateCodeForNonTerminal(String key, Map<String, List<String>> grammarMap) {
-
-        System.out.println(key);
-        if ((key.equals ("<identifier>")) || (key.equals ("<input character>" ))) {
-            if(identifierType == IdentifierType.variableIdentifier)
-                return ProgramGeneratorUtils.generateIdentifierForVariables(this);
-            else
-                return RandomStrGen.randomStrGenerator();
-        } else if(key.equals("<block>") && identifierType.equals(IdentifierType.methodBody)){
-            if(!identifierType.getType().equals(IdentifierType.Type.voidType)) {
-                String body = "{ " + identifierType.getType().getValue();
-                String defaultValue = identifierType.getType().getDefaultValue();
-                identifierType = IdentifierType.variableIdentifier;
-                String identifierName = generateCodeForNonTerminal("<identifier>", grammarMap);
-                body += " " + identifierName + "=" + defaultValue + "; return " + identifierName + "; }";
-                return body;
-            } else {
-                return "{}";
-            }
-
-        } else if(key.equals("<return>") && identifierType.equals(IdentifierType.returnStatement)){
-
-            return "return " + identifierType.getType().getDefaultValue() + ";";
-        }
-
-````
-
-## _Parsing the generated code and implementing java language rules_
-The generated code is then parsed to create a parse tree using JAVA parser. Appropriate java syntax rules are implemented as and when tree is traversed through each node. The output of the parse tree is then written into .java class file. 
-
-**LanguageValidationServiceImpl.java** class file generates the parse tree and checks for java language rules to check the syntax of the randomly generated code.
-
-The following snippet has one of the methods that semantically checks for errors and handles them complying to the JLS rules.
-The validateReturnStatement method visits the return type node for the method and validates whether the semantics of the program complies with the JLS rules.
-
-````
-@Override
-    public void validateReturnStatement(CClass cClass, Method method, Node parent, Node returnNode) {
-        if(null == returnNode){
-            IdentifierType identifierType = IdentifierType.returnStatement;
-            identifierType.getTypeByValue(method.getType());
-
-            CodeGenerateService codeGenerateService = new JavaCodeGenerateServiceImpl(cClass, method, identifierType);
-            String returnBlock = codeGenerateService.generateCodeForNonTerminal("<return>", GrammarMapGenerator.grammarMap);
-
-            ReturnStmt stmt = (ReturnStmt) JavaParser.parseStatement(returnBlock);
-            BlockStmt block = (BlockStmt) parent;
-            block.addStatement(stmt);
-        } else {
-
-            List<Symbol> symbolsAvailableInScope = new ArrayList<>();
-
-            symbolsAvailableInScope.addAll(cClass.symbolTable.values());
-            symbolsAvailableInScope.addAll(method.getInitializedVariables());
-            symbolsAvailableInScope.addAll(method.getParameterList());
-            boolean symbolFound = false;
-
-            for(Symbol symbol : symbolsAvailableInScope){
-                if(symbol.isField() && symbol.getType().equals(method.getType())){
-                    symbolFound = true;
-                    String returnStatement = "return " + symbol.getName() + ";";
-                    ReturnStmt stmt = (ReturnStmt) JavaParser.parseStatement(returnStatement);
-                    parent.replace(returnNode,stmt);
-                }
-            }
-
-            if(!symbolFound) {
-                IdentifierType identifierType = IdentifierType.returnStatement;
-                identifierType.getTypeByValue(method.getType());
-
-                CodeGenerateService codeGenerateService = new JavaCodeGenerateServiceImpl(cClass, method, identifierType);
-                String returnBlock = codeGenerateService.generateCodeForNonTerminal("<return>", GrammarMapGenerator.grammarMap);
-
-                ReturnStmt stmt = (ReturnStmt) JavaParser.parseStatement(returnBlock);
-                parent.replace(returnNode, stmt);
-            }
-        }
-    }
-````
-
-The output of the parsed tree is then stored as an .java class file in the file system.
+## _Parsing the generated code and matching java language rules_
+The generated code is then parsed to create a parse tree using JAVA parser. Appropriate java syntax rules are matched as and when tree is traversed through each node. Whenever a node in the parse tree does not match the corresponding JLS rule, we either regenerate the code for the node or delete the node. The output of the parse tree is then written into .java class file. 
 
 The following code snippet is an instance of a randomly generated program, you will notice that the code is syntactically and semantically correct that is being handled in the application. Henceforth, the objective of this application.
 
@@ -222,7 +72,127 @@ public class TenKLOCrkmpjw {
 
 ````
 
+## _Some of the JLS rules handled in the project_
+
+**Method Local Variable:**
+
+Variable can't have more than once access modifier in their signature
+
+Variable can't be used before initialization
+
+**Enum Declaration:**
+
+Enum cannot have public or protected constructors
+
+**Import Declaration:**
+
+Imports are a part of the java package or one of the classes in the project
+
+**Nested class:**
+
+Nested class must be static.
+
+**Inner Class:**
+
+Inner classes cannot be static.
+
+**Method:**
+
+Method Declaration as an abstract method can't have another of the keywords like Native, Sync, Final, Private.
+
+Static methods cannot access non-static fields. 
+
+Instance method cannot override a static method.
+
+Method cannot override a final method.
+
+Static method cannot hide an instance method.
+
+**Field:**
+
+Checks the method signature to make sure that the variable declaration does not have more than one access modifier.
+
+**Abstract Class:**
+
+Check if all the methods in an abstract class are declared as abstract.
+
+Abstract class cannot be declared as final.
+
+Methods inside an abstract class cannot be final.
+
+**Package:**
+
+Package name must follow JLS rules for package definition.
+
+**Return Statement:**
+
+Return statement must match the return type of the method.
+
+Return statement must return a variable in the scope.
+
+Return statement must return a value that matches the return type of the method.
+
+**Super Class:**
+
+Only abstract and concrete classes can be extended.
+
+Only interfaces can be implemented.
+
+Import declaration must be added for super types.
+
+A class can only extend one concrete/abstract class.
+
+A class can implement multiple interfaces.
+
+**Class:**
+
+Class definition cannot contain both final and abstract.
+
+private class cannot be inherited.
+
+There can be only one public class in a java file.
+
+final classes cannot be inherited from.
+
+**Interface:**
+
+Interface definition cannot contain both final and abstract.
+
+Interface methods cannot have method bodies. 
+
+All interface methods must be overridden by the concrete subclass
+
+**Concrete Subclass (Method Overriding):**
+
+Concrete subclass of a interface or abstract class must override all the abstract methods.
+
+The overridden method must have the same signature as the superclass method.
+
+The overridden method must have the same return type as the superclass method.
+
+
+**Constructor:**
+
+Constructor name should match the class name exactly.
+
+If a class has a parameterized constructor, it must have default constructor.
+
+No two constructors can have the same parameter list.
+
+**Conditional Statements:**
+
+The conditional part of the if/while loop must always return boolean
+
+In switch statement, the case label must match the switch variable type.
+
+**Exception Handling:**
+
+A try must be followed by catch/finally block.
+
+A catch must be preceded by the try block.
+
 ## _Configuration parameters_
+
 The configuration parameters as mentioned in the project description are read from the xml file, and the same constraints are realized during the code generation. 
 
 **XmlFileReader.java** class is used to read the constraints specified in the configuration file.
@@ -230,59 +200,17 @@ The configuration parameters as mentioned in the project description are read fr
 The readXmlFile method that's implemented in the XmlFileReader class reads all the attributes from the xml file that has all the upper and lower bounds to successfully generate a program.
 As the readXmlFile method is invoked in the constructor, all the getter methods are available to get values. As you can notice the applicationConstraints class resembles a builder pattern. 
 
-```public class XmlFileReader {
-    private ApplicationConstraints ac;
-    
-    public XmlFileReader(ApplicationConstraints _applicationConstraints){
-        this.ac = _applicationConstraints;
-        this.readXmlFile();
-    }
-    
-public void readXmlFile() {
-    DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-    DocumentBuilder dBuilder = null;
-    try {
-        dBuilder = dbFactory.newDocumentBuilder();
-    } catch (ParserConfigurationException e1) {
-        e1.printStackTrace();
-    }
-    Document doc = null;
-    try {
-        doc = dBuilder.parse(new File("constraints.xml"));
-        doc.getDocumentElement().normalize();
-    } catch (IOException e1) {
-        e1.printStackTrace();
-    } catch (org.xml.sax.SAXException e) {
-        e.printStackTrace();
-    }
-    NodeList nList = doc.getElementsByTagName("ProgGen");
-    try{
-        for(int i = 0; i <= nList.getLength(); i++){
-            Element element = (Element) nList.item(i);
-            if(element != null){
-                getConstraints(element);
-            }
-        }
-    }catch(Exception e){
-        e.printStackTrace();
-    }
-  }
-```
-    
-
 ## _How to run the application?_
-•	Please resolve all your dependencies before running the application
+•	Please resolve all your dependencies before running the application.
 
-•	The randomly generated program in saved in the **_GeneratedClasses_** folder that resides in the **_D:/_** drive in your file system
-
-•	You need to create a folder named **_GeneratedClasses_** in the **_D:/_** drive
+•	We need to mention the path in the config.properties using the property **generatedCodeLocation**. This the location on the file system where the generated code will be saved.
 
 
 ## _How to build the application?_
 `gradle build`
 
 ## _Running the unit tests_
-Test cases for all the possible scenarios were implemented. Test Coverage was pretty decent.
+33 Test classes for all the possible scenarios were implemented.
 
 **_Reflection_** was used in accessing modifiers that were private
 
@@ -292,8 +220,9 @@ Test cases for all the possible scenarios were implemented. Test Coverage was pr
 
 **_JUnit_** was used for running assertions between the actual and expected values
 
-## _How to run the test suit?_
-`gradle test`
+## _How to run the test suite?_
+`gradle test` 
+(if this does not work for you, right click on "test" package and "Run Test")
 
 ## _Dependencies_
 `testCompile group: 'junit', name: 'junit', version: '4.12'`
@@ -312,4 +241,5 @@ Test cases for all the possible scenarios were implemented. Test Coverage was pr
     
 `compile 'com.github.javaparser:javaparser-core:3.5.4'`
 
-`compile group: 'commons-io', name: 'commons-io', version: '2.5'`
+## _Known Issues_
+_None_

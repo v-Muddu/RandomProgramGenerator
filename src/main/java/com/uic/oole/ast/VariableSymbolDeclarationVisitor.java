@@ -26,8 +26,7 @@ public class VariableSymbolDeclarationVisitor extends VoidVisitorAdapter<CClass>
              *Checks for variables that are not re-declared in the global scope
              */
             if(name.length() > 1){
-				ErrorInformation.addNode(n);
-                System.out.println("There are more than 1 vars of the same name");
+				//ErrorInformation.removeNode(n, "There are more than 1 vars of the same name");
             }
             super.visit(n, cClass);
         }
@@ -43,8 +42,7 @@ public class VariableSymbolDeclarationVisitor extends VoidVisitorAdapter<CClass>
         if((n.getModifiers().contains(Modifier.PRIVATE) && n.getModifiers().contains(Modifier.PUBLIC) ||
                 (n.getModifiers().contains(Modifier.PUBLIC) && n.getModifiers().contains(Modifier.PROTECTED)) ||
                 (n.getModifiers().contains(Modifier.PROTECTED) && n.getModifiers().contains(Modifier.PRIVATE)))){
-			ErrorInformation.addNode(n);
-            System.out.println("Variables can't have more than once access modifier in thier signature  ");
+			ErrorInformation.removeNode(n, "Variables can't have more than once access modifier in their signature");
         }
         super.visit(n, cClass);
     }

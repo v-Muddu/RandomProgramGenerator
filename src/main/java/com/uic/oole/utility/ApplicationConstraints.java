@@ -281,9 +281,9 @@ public class ApplicationConstraints {
 
     public boolean reached(){
         try{
-            if(Integer.parseInt(JavaCodeGenerateServiceImpl.keyCallCount.get("<interface type list>").toString()) < getMinInheritanceDepth() )return true;
-            if (Integer.parseInt(JavaCodeGenerateServiceImpl.keyCallCount.get("<interface type list>").toString()) > getNoOfInterfaces()) return false;
-            if (Integer.parseInt(JavaCodeGenerateServiceImpl.keyCallCount.get("<class declaration with public>").toString()) > getNoOfClasses()) return false;
+            if(null != JavaCodeGenerateServiceImpl.keyCallCount.get("<interface type list>") && JavaCodeGenerateServiceImpl.keyCallCount.get("<interface type list>") < getMinInheritanceDepth() )return true;
+            if (null != JavaCodeGenerateServiceImpl.keyCallCount.get("<interface type list>") && JavaCodeGenerateServiceImpl.keyCallCount.get("<interface type list>") > getNoOfInterfaces()) return false;
+            if (null != JavaCodeGenerateServiceImpl.keyCallCount.get("<class declaration with public>") && JavaCodeGenerateServiceImpl.keyCallCount.get("<class declaration with public>") > getNoOfClasses()) return false;
             return true;
         }
         catch(Exception | Error e){

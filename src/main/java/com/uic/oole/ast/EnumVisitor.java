@@ -1,6 +1,5 @@
 package com.uic.oole.ast;
 
-import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.EnumDeclaration;
@@ -25,8 +24,7 @@ public class EnumVisitor extends VoidVisitorAdapter<CClass> {
         List<ConstructorDeclaration> constructorList = n.getConstructors();
         for(ConstructorDeclaration constructor: constructorList){
             if((n.isEnumDeclaration() && n.getModifiers().contains(Modifier.PROTECTED) || (n.isEnumDeclaration() && n.getModifiers().contains(Modifier.PUBLIC)))){
-                ErrorInformation.addNode(n);
-                System.out.println("Compile time error for the constructor of an enum, the constructor cannot be " +
+                ErrorInformation.removeNode(n,"Compile time error for the constructor of an enum, the constructor cannot be " +
                         "declared public or protected");
             }
         }

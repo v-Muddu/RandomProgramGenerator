@@ -41,8 +41,7 @@ public class MethodVariableInitializerVisitor extends VoidVisitorAdapter<Pair<CC
                 /**
                  * Variable being used before initialization
                  */
-                System.out.println(checkInitializerResult.getValue());
-                ErrorInformation.addNode(var);
+                ErrorInformation.removeNode(var, "Variable being used before initialization");
                 CodeGenerateService codeGenerateService = new JavaCodeGenerateServiceImpl(cClass,method, IdentifierType.variableIdentifier);
 
                 /**
@@ -60,7 +59,6 @@ public class MethodVariableInitializerVisitor extends VoidVisitorAdapter<Pair<CC
             if(!method.hasBeenInitialized(var.getNameAsString()))
                 method.initialize(methodSymbol);
         }
-        System.out.println("Sym table in method class: " + cClass.methodMap);
         super.visit(var, pair);
     }
 

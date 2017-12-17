@@ -1,9 +1,6 @@
 package com.uic.oole.parser;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class CClass {
 
@@ -15,9 +12,21 @@ public class CClass {
 
     private ClassType classType;
 
+    public List<List<String>> constructorList = new ArrayList<>();
+
     public Map<String, Symbol> symbolTable = new HashMap<>();
 
     public Map<String, Method> methodMap = new HashMap<>();
+
+    public void addConstructorParameters(List<String> constructorParameters){
+        if(constructorList != null && constructorParameters != null)
+            constructorList.add(constructorParameters);
+    }
+
+
+    public List<List<String>> getConstructorList(){
+        return constructorList;
+    }
 
     private boolean isPublic;
 

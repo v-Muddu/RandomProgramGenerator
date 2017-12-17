@@ -21,7 +21,6 @@ public class ReturnTypeVisitor extends VoidVisitorAdapter<Pair<CClass, Method>>{
     @Override
     public void visit(ReturnStmt n, Pair<CClass, Method> arg) {
         String returnVar = n.getExpression().get().toString();
-        System.out.println("Return statement====?" + n.getExpression().get());
         LanguageValidationService languageValidationService = new LanguageValidationServiceImpl();
         languageValidationService.validateReturnStatement(arg.getKey(),arg.getValue(),n.getParentNode().get(),n);
         super.visit(n, arg);
